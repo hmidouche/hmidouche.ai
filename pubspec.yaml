@@ -1,0 +1,16 @@
+name: hamidouch_ai
+description: Hamidouch chat interface prototype
+publish_to: none
+version: 0.1.0+1
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  file_picker: ^8.1.7
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/avatar.png

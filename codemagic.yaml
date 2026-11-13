@@ -1,1 +1,70 @@
+workflows:
+  android-preview:
+    name: Hmidouche Android validation
+    max_build_duration: 30
+    environment:
+      flutter: 3.38.6
+      java: 17
+    scripts:
+      - name: Check project and record environment
+        script: |
+          set -euxo pipefail
+          trap 'echo "ERROR: project/environment check failed at line $LINENO. See the command immediately above." >&2' ERR
+          mkdir -p build-diagnostics
+          pwd
+          ls -la
+          flutter --version 2>&1 | tee build-diagnostics/flutter-version.txt
+          dart --version 2>&1 | tee build-diagnostics/dart-version.txt
+          java -version 2>&1 | tee build-diagnostics/java-version.txt
+          for required_file in pubspec.yaml lib/main.dart assets/avatar.png; do
+            if [ ! -s "$required_file" ]; then
+              echo "ERROR: Required file is missing or empty: $required_file" >&2
+              exit 1
+            fi
+          done
+          if [ ! -d test ]; then
+            echo "ERROR: Missing test directory. Upload the complete r6 package contents to the repository root." >&2
+            exit 1
+          fi
+          echo "Project and environment checks passed."
+      - name: Prepare Android without overwriting an existing project
+        script: |
+          set -euo pipefail
+          if [ -d android ]; then
+            echo "Preserving the existing Android project."
+            test -f android/gradlew
+            test -f android/app/src/main/AndroidManifest.xml
+            chmod +x android/gradlew
+          else
+            scaffold_dir="$(mktemp -d)"
+            flutter create --no-pub --platforms=android --org=ai.hmidouche --project-name=hamidouch_ai "$scaffold_dir/scaffold"
+            cp -R "$scaffold_dir/scaffold/android" ./android
+            if [ ! -f .metadata ]; then
+              cp "$scaffold_dir/scaffold/.metadata" ./.metadata
+            fi
+            chmod +x android/gradlew
+          fi
+      - name: Resolve dependencies and record exact versions
+        script: |
+          set -euo pipefail
+          flutter pub get 2>&1 | tee build-diagnostics/pub-get.log
+          test -s pubspec.lock
+          flutter pub deps --style=compact > build-diagnostics/dependencies.txt
+      - name: Analyze source and tests
+        script: |
+          set -euo pipefail
+          flutter analyze lib test 2>&1 | tee build-diagnostics/analyze.log
+      - name: Run tests before APK build
+        script: |
+          set -euo pipefail
+          flutter test --reporter expanded 2>&1 | tee build-diagnostics/tests.log
+      - name: Build Android arm64 debug APK
+        script: |
+          set -euo pipefail
+          flutter build apk --debug --target-platform android-arm64 2>&1 | tee build-diagnostics/apk-build.log
+          test -s build/app/outputs/flutter-apk/app-debug.apk
+    artifacts:
+      - build/app/outputs/flutter-apk/app-debug.apk
+      - pubspec.lock
+      - build-diagnostics/**
 

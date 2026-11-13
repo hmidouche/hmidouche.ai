@@ -1,1 +1,21 @@
+workflows:
+  android-preview:
+    name: Hamidouch Android UI preview
+    max_build_duration: 30
+    environment:
+      flutter: stable
+    scripts:
+      - name: Generate Android scaffold
+        script: |
+          flutter create --platforms=android --org=ai.hmidouche --project-name=hamidouch_ai /tmp/hamidouch_scaffold
+          cp -R /tmp/hamidouch_scaffold/android .
+          cp /tmp/hamidouch_scaffold/.metadata .
+      - name: Install dependencies
+        script: flutter pub get
+      - name: Analyze source
+        script: flutter analyze lib
+      - name: Build test APK
+        script: flutter build apk --debug
+    artifacts:
+      - build/app/outputs/flutter-apk/app-debug.apk
 

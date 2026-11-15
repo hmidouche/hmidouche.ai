@@ -1,26 +1,15 @@
-
 name: hamidouch_ai
 description: Hamidouch chat interface prototype
 publish_to: none
-version: 0.6.0+6
+version: 0.1.0+1
 environment:
-  sdk: '>=3.10.7 <4.0.0'
-  flutter: '>=3.38.6'
+  sdk: '>=3.4.0 <4.0.0'
 dependencies:
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  file_picker: 8.1.7
-  llamadart: 0.19.7
-  crypto: ^3.0.0
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-hooks:
-  user_defines:
-    llamadart:
-      llamadart_native_runtimes: [llama_cpp, stable_diffusion]
+  file_picker: ^8.1.7
 flutter:
   uses-material-design: true
   assets:
